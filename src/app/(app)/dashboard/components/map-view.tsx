@@ -1,16 +1,44 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import {
   APIProvider,
   Map,
   AdvancedMarker,
   InfoWindow,
+  useMap,
 } from "@vis.gl/react-google-maps";
-import { Polyline } from "@vis.gl/react-google-maps/compat";
-import { useState } from "react";
 import { argoFloats, type ArgoFloat } from "@/lib/data";
 import { Ship } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+
+// Custom Polyline component
+const CustomPolyline = ({ path, color }: { path: google.maps.LatLngLiteral[]; color: string }) => {
+  const map = useMap();
+  const [polyline, setPolyline] = useState<google.maps.Polyline | null>(null);
+
+  useEffect(() => {
+    if (!map) return;
+
+    const newPolyline = new google.maps.Polyline({
+      path: path,
+      geodesic: true,
+      strokeColor: color,
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+    });
+
+    newPolyline.setMap(map);
+    setPolyline(newPolyline);
+
+    return () => {
+      newPolyline.setMap(null);
+    };
+  }, [map, path, color]);
+
+  return null;
+};
+
 
 export function MapView() {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -42,13 +70,12 @@ export function MapView() {
                     disableDefaultUI={true}
                 >
                     {argoFloats.map((float, index) => (
-                        <Polyline
-                            key={float.id}
-                            path={float.path}
-                            strokeColor={`hsl(var(--chart-${(index % 5) + 1}))`}
-                            strokeOpacity={0.8}
-                            strokeWeight={3}
+                      <React.Fragment key={float.id}>
+                        <CustomPolyline 
+                          path={float.path}
+                          color={`hsl(var(--chart-${(index % 5) + 1}))`}
                         />
+                      </React.Fragment>
                     ))}
                     {argoFloats.map((float, index) => (
                         <AdvancedMarker

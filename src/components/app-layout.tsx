@@ -17,6 +17,7 @@ import { usePathname } from 'next/navigation';
 import { Bot, Home, Info, LayoutDashboard, PanelLeft, Waves } from 'lucide-react';
 import { Button } from './ui/button';
 import { ArgoExplorerLogo } from './icons';
+import React from 'react';
 
 const navItems = [
   { href: '/home', icon: Home, label: 'Home' },
