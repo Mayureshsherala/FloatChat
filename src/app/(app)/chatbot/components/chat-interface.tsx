@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, ChevronRight, Loader2, User, Thermometer, Waves, Wind, HelpCircle } from 'lucide-react';
+import { Bot, ChevronRight, Loader2, User, Thermometer, Waves, Wind, HelpCircle, Send } from 'lucide-react';
 import React, { FormEvent, useRef, useState, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -54,9 +54,8 @@ export function ChatInterface() {
         });
         setMessages((prev) => prev.slice(0, -1)); // Remove the user message if the call fails
       } else {
-        const botMessage: Message = { role: 'bot', content: result.query ?? '' };
-        const dataMessage: Message = { role: 'data', content: 'Sea Surface Temperature - Bay of Bengal', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })};
-        setMessages((prev) => [...prev, dataMessage]);
+        const botMessage: Message = { role: 'bot', content: result.query ?? 'Sorry, I could not generate a query.', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+        setMessages((prev) => [...prev, botMessage]);
         setTimeout(() => {
           scrollAreaRef.current?.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
         }, 100);
@@ -103,7 +102,12 @@ export function ChatInterface() {
                     (message.role === 'data' || message.role === 'info') ? 'w-full p-0 bg-transparent' : ''
                   )}
                 >
-                  {message.role === 'bot' && <p>{message.content}</p>}
+                  {message.role === 'bot' && 
+                    <div>
+                      <p className="font-mono bg-background/50 p-2 rounded-md">{message.content}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{message.timestamp}</p>
+                    </div>
+                  }
                   {message.role === 'user' && 
                     <div>
                       <p>{message.content}</p>
@@ -174,9 +178,9 @@ export function ChatInterface() {
             autoComplete="off"
             className="flex-1 bg-background"
           />
-          <Button type="submit" size="icon" variant="ghost" disabled={isPending || !input.trim()}>
-            <HelpCircle className="size-5" />
-            <span className="sr-only">Help</span>
+          <Button type="submit" size="icon" disabled={isPending || !input.trim()}>
+            <Send className="size-5" />
+            <span className="sr-only">Send</span>
           </Button>
         </form>
       </CardFooter>
