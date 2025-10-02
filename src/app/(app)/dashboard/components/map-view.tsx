@@ -4,9 +4,9 @@ import {
   APIProvider,
   Map,
   AdvancedMarker,
-  Polyline,
   InfoWindow,
 } from "@vis.gl/react-google-maps";
+import { Polyline } from "@vis.gl/react-google-maps/compat";
 import { useState } from "react";
 import { argoFloats, type ArgoFloat } from "@/lib/data";
 import { Ship } from "lucide-react";
