@@ -1,3 +1,4 @@
+
 'use client';
 
 import { getSQLFromQuestion } from '@/app/(app)/chatbot/actions';
@@ -17,6 +18,7 @@ type Message = {
   role: 'user' | 'bot' | 'data' | 'info';
   content: string;
   timestamp?: string;
+  query?: string;
 };
 
 const exampleSuggestions = [
@@ -42,10 +44,11 @@ export function ChatInterface() {
 
     const userMessage: Message = { role: 'user', content: input, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
 
     startTransition(async () => {
-      const result = await getSQLFromQuestion(input);
+      const result = await getSQLFromQuestion(currentInput);
       if (result.error) {
         toast({
           variant: 'destructive',
@@ -54,8 +57,13 @@ export function ChatInterface() {
         });
         setMessages((prev) => prev.slice(0, -1)); // Remove the user message if the call fails
       } else {
-        const botMessage: Message = { role: 'bot', content: result.query ?? 'Sorry, I could not generate a query.', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-        setMessages((prev) => [...prev, botMessage]);
+        const dataMessage: Message = {
+          role: 'data',
+          content: `Analysis for "${currentInput}"`,
+          query: result.query,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prev) => [...prev, dataMessage]);
         setTimeout(() => {
           scrollAreaRef.current?.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
         }, 100);
@@ -118,6 +126,7 @@ export function ChatInterface() {
                      <Card>
                         <CardHeader className="pb-2">
                             <CardTitle className="text-base">{message.content}</CardTitle>
+                             <CardDescription className="font-mono text-xs bg-background/50 p-2 rounded-md mt-1">{message.query}</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <DataCharts isMiniature={true} />
