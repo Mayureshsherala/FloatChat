@@ -12,6 +12,8 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
 } from "@/components/ui/chart";
 import {
   Select,
@@ -33,6 +35,18 @@ const chartConfig = {
     label: "Salinity (PSU)",
     color: "hsl(var(--chart-2))",
   },
+  temp: {
+    label: "Temp",
+    color: "hsl(var(--chart-1))",
+  },
+  avg: {
+    label: "Avg",
+    color: "hsl(var(--chart-2))",
+  },
+  low: {
+    label: "Low",
+    color: "hsl(var(--chart-3))",
+  }
 };
 
 type DataChartsProps = {
@@ -80,7 +94,7 @@ export function DataCharts({ isMiniature = false }: DataChartsProps) {
       ];
 
     return (
-        <div className="h-[150px] w-full">
+        <ChartContainer config={chartConfig} className="h-[150px] w-full">
             <ResponsiveContainer>
                 <LineChart data={miniatureData} margin={{ top: 5, right: 10, left: -20, bottom: -10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -96,12 +110,12 @@ export function DataCharts({ isMiniature = false }: DataChartsProps) {
                             />
                         }
                     />
-                    <Line dataKey="temp" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={false} name="Temp"/>
-                    <Line dataKey="avg" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} name="Avg" />
-                    <Line dataKey="low" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} name="Low" />
+                    <Line dataKey="temp" stroke="var(--color-temp)" strokeWidth={2} dot={false} name="Temp"/>
+                    <Line dataKey="avg" stroke="var(--color-avg)" strokeWidth={2} dot={false} name="Avg" />
+                    <Line dataKey="low" stroke="var(--color-low)" strokeWidth={2} dot={false} name="Low" />
                 </LineChart>
             </ResponsiveContainer>
-        </div>
+        </ChartContainer>
     );
   }
 
@@ -149,7 +163,7 @@ export function DataCharts({ isMiniature = false }: DataChartsProps) {
                   <Line
                     dataKey="temperature"
                     type="monotone"
-                    stroke={chartConfig.temperature.color}
+                    stroke="var(--color-temperature)"
                     strokeWidth={2}
                     dot={false}
                     name="Temperature"
@@ -178,7 +192,7 @@ export function DataCharts({ isMiniature = false }: DataChartsProps) {
                   <Line
                     dataKey="salinity"
                     type="monotone"
-                    stroke={chartConfig.salinity.color}
+                    stroke="var(--color-salinity)"
                     strokeWidth={2}
                     dot={false}
                     name="Salinity"
@@ -196,7 +210,11 @@ export function DataCharts({ isMiniature = false }: DataChartsProps) {
           <CardDescription>Temperature profiles of all floats</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={{}} className="h-[650px] w-full">
+          <ChartContainer config={{
+            "Argo Float 1 (Indian Ocean)": { color: "hsl(var(--chart-1))" },
+            "Argo Float 2 (Bay of Bengal)": { color: "hsl(var(--chart-2))" },
+            "Argo Float 3 (Arabian Sea)": { color: "hsl(var(--chart-3))" },
+          }} className="h-[650px] w-full">
             <LineChart margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                <CartesianGrid strokeDasharray="3 3" />
                <XAxis
@@ -214,7 +232,7 @@ export function DataCharts({ isMiniature = false }: DataChartsProps) {
                     data={float.profiles}
                     dataKey="temperature"
                     name={float.name}
-                    stroke={`hsl(var(--chart-${(index % 5) + 1}))`}
+                    stroke={`var(--color-${float.name})`}
                     strokeWidth={2}
                     dot={false}
                   />
@@ -226,3 +244,5 @@ export function DataCharts({ isMiniature = false }: DataChartsProps) {
     </div>
   );
 }
+
+    
