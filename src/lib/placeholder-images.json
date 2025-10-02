@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-ocean",
+      "description": "An aerial view of the ocean with swirling patterns",
+      "imageUrl": "https://images.unsplash.com/photo-1551917951-148edcd8ea8d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxvY2VhbiUyMGFlcmlhbHxlbnwwfHx8fDE3NTk0MjE1MDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ocean aerial"
+    }
+  ]
 }
