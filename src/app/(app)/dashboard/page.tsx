@@ -50,7 +50,7 @@ export default function DashboardPage() {
             <Header />
             <MapView />
         </div>
-        <div className="w-[350px] flex-shrink-0">
+        <div className="w-[450px] flex-shrink-0">
           <ChatInterface />
         </div>
       </main>
