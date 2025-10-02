@@ -12,8 +12,6 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from "@/components/ui/chart";
 import {
   Select,
@@ -23,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { argoFloats, type ArgoFloat } from "@/lib/data";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, TooltipProps } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, TooltipProps, ResponsiveContainer } from "recharts";
 import { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
 
 const chartConfig = {
@@ -37,7 +35,11 @@ const chartConfig = {
   },
 };
 
-export function DataCharts() {
+type DataChartsProps = {
+  isMiniature?: boolean;
+}
+
+export function DataCharts({ isMiniature = false }: DataChartsProps) {
   const [selectedFloatId, setSelectedFloatId] = useState<string>(
     argoFloats[0].id
   );
@@ -48,7 +50,7 @@ export function DataCharts() {
   const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
     if (active && payload && payload.length) {
       return (
-        <div className="p-2 text-sm bg-background/80 backdrop-blur-sm rounded-lg border">
+        <div className="p-2 text-xs bg-background/80 backdrop-blur-sm rounded-lg border">
           <p className="font-bold">{`Depth: ${label} m`}</p>
           {payload.map((pld, index) => (
              <p key={index} style={{ color: pld.color }}>
@@ -61,6 +63,47 @@ export function DataCharts() {
     return null;
   };
   
+  if (isMiniature) {
+    const miniatureData = [
+        { name: 'Jan', temp: 22, avg: 24, low: 20 },
+        { name: 'Feb', temp: 23, avg: 25, low: 21 },
+        { name: 'Mar', temp: 25, avg: 27, low: 23 },
+        { name: 'Apr', temp: 27, avg: 29, low: 25 },
+        { name: 'May', temp: 28.7, avg: 30, low: 26 },
+        { name: 'Jun', temp: 27, avg: 29, low: 25 },
+        { name: 'Jul', temp: 26, avg: 28, low: 24 },
+        { name: 'Aug', temp: 26.5, avg: 28.5, low: 24.5 },
+        { name: 'Sep', temp: 26, avg: 28, low: 24 },
+        { name: 'Oct', temp: 25, avg: 27, low: 23 },
+        { name: 'Nov', temp: 24, avg: 26, low: 22 },
+        { name: 'Dec', temp: 23, avg: 25, low: 21 },
+      ];
+
+    return (
+        <div className="h-[150px] w-full">
+            <ResponsiveContainer>
+                <LineChart data={miniatureData} margin={{ top: 5, right: 10, left: -20, bottom: -10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="name" fontSize={10} tickLine={false} axisLine={false}/>
+                    <YAxis fontSize={10} domain={[20, 32]} tickLine={false} axisLine={false}/>
+                    <ChartTooltip
+                        cursor={false}
+                        content={
+                            <ChartTooltipContent
+                            indicator="line"
+                            labelClassName="text-xs"
+                            className="text-xs"
+                            />
+                        }
+                    />
+                    <Line dataKey="temp" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={false} name="Temp"/>
+                    <Line dataKey="avg" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} name="Avg" />
+                    <Line dataKey="low" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} name="Low" />
+                </LineChart>
+            </ResponsiveContainer>
+        </div>
+    );
+  }
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
