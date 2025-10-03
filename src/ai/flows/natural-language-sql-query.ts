@@ -33,6 +33,21 @@ const prompt = ai.definePrompt({
 
   Your job is to translate a natural language question into a SQL query that can be executed against a PostgreSQL database.
 
+  The table name is 'argo_data' and it has the following columns:
+  - float_id: INTEGER
+  - cycle_number: INTEGER
+  - profile_id: VARCHAR
+  - time: TIMESTAMP
+  - latitude: REAL
+  - longitude: REAL
+  - pressure_dbar: REAL
+  - temperature_C: REAL
+  - salinity_PSU: REAL
+  - oxygen_umol_per_kg: REAL
+  - nitrate_umol_per_kg: REAL
+  - bgc_flag: VARCHAR
+  - source_netcdf: VARCHAR
+
   Question: {{{question}}}
 
   Return only the SQL query.
