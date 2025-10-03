@@ -6,30 +6,36 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, ChevronRight, Loader2, User, Thermometer, Waves, Wind, Send } from 'lucide-react';
+import { Bot, ChevronRight, Loader2, User, Thermometer, Waves, Wind, Send, BarChart, ScatterChart, LineChartIcon } from 'lucide-react';
 import React, { FormEvent, useRef, useState, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { DataCharts } from '../../dashboard/components/data-charts';
-import { Separator } from '@/components/ui/separator';
 import { ChartContainer } from '@/components/ui/chart';
-import { Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, Legend, Scatter } from 'recharts';
+
+type ChartSeries = {
+  name: string;
+  data: { x: any; y: any }[];
+};
 
 type Message = {
   role: 'user' | 'bot' | 'data' | 'info';
   content: string;
   timestamp?: string;
-  chartData?: any[];
+  chartData?: ChartSeries[];
+  chartType?: 'line' | 'bar' | 'scatter';
   chartLabels?: { x: string; y: string };
 };
 
 const exampleSuggestions = [
-    { icon: <Thermometer className="size-4 text-red-500" />, text: "Sea surface temperatures with temporal trends" },
-    { icon: <Waves className="size-4 text-blue-500" />, text: "Salinity levels by region and depth" },
-    { icon: <Wind className="size-4 text-green-500" />, text: "Ocean current-velocity patterns" },
-    { icon: <div className="size-4 bg-orange-500 rounded-sm" />, text: "Pollution distribution analysis" }
+    { icon: <Thermometer className="size-4 text-red-500" />, text: "Compare temperature for floats 690100 and 690101" },
+    { icon: <Waves className="size-4 text-blue-500" />, text: "Show salinity vs pressure for float 690102" },
+    { icon: <BarChart className="size-4 text-green-500" />, text: "What is the average temperature for each float?" },
+    { icon: <ScatterChart className="size-4 text-orange-500" />, text: "Plot temperature vs salinity for float 690100" }
 ];
+
+const chartColors = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
 
 
 export function ChatInterface() {
@@ -64,6 +70,7 @@ export function ChatInterface() {
           role: 'data',
           content: result.answer || "I couldn't find an answer.",
           chartData: result.chartData,
+          chartType: result.chartType,
           chartLabels: result.chartLabels,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
@@ -79,12 +86,71 @@ export function ChatInterface() {
     setInput(query);
   }
   
-  const chartConfig = {
-    value: {
-      label: "Value",
-      color: "hsl(var(--chart-1))",
-    },
-  };
+  const chartConfig = {}; // Will be populated dynamically
+
+  const renderChart = (message: Message) => {
+    if (!message.chartData || message.chartData.length === 0) return null;
+    
+    const combinedData = message.chartData.reduce((acc: any[], series) => {
+        series.data.forEach(point => {
+            let entry = acc.find(d => d.x === point.x);
+            if (!entry) {
+                entry = { x: point.x };
+                acc.push(entry);
+            }
+            entry[series.name] = point.y;
+        });
+        return acc;
+    }, []);
+
+    const DynamicChart = ({chartType}: {chartType: string | undefined}) => {
+        switch (chartType) {
+            case 'bar':
+                return (
+                    <ResponsiveContainer>
+                        <BarChart data={combinedData} margin={{ top: 5, right: 10, left: -20, bottom: 20 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis dataKey="x" fontSize={10} tickLine={false} axisLine={false} label={{ value: message.chartLabels?.x, position: 'insideBottom', offset: -10, fontSize: 10 }} />
+                            <YAxis fontSize={10} tickLine={false} axisLine={false} domain={['dataMin', 'dataMax']} label={{ value: message.chartLabels?.y, angle: -90, position: 'insideLeft', fontSize: 10 }} />
+                            <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', fontSize: '12px' }} />
+                            <Legend wrapperStyle={{fontSize: "10px"}}/>
+                            {message.chartData?.map((series, i) => <Bar key={series.name} dataKey={series.name} fill={chartColors[i % chartColors.length]} />)}
+                        </BarChart>
+                    </ResponsiveContainer>
+                )
+            case 'scatter':
+                return (
+                     <ResponsiveContainer>
+                        <ScatterChart margin={{ top: 5, right: 10, left: -20, bottom: 20 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis type="number" dataKey="x" name={message.chartLabels?.x} fontSize={10} tickLine={false} axisLine={false} label={{ value: message.chartLabels?.x, position: 'insideBottom', offset: -10, fontSize: 10 }} domain={['dataMin', 'dataMax']} />
+                            <YAxis type="number" dataKey="y" name={message.chartLabels?.y} fontSize={10} tickLine={false} axisLine={false} label={{ value: message.chartLabels?.y, angle: -90, position: 'insideLeft', fontSize: 10 }} domain={['dataMin', 'dataMax']} />
+                            <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', fontSize: '12px' }} />
+                            <Legend wrapperStyle={{fontSize: "10px"}}/>
+                            {message.chartData?.map((series, i) => <Scatter key={series.name} name={series.name} data={series.data} fill={chartColors[i % chartColors.length]} />)}
+                        </ScatterChart>
+                     </ResponsiveContainer>
+                )
+            case 'line':
+            default:
+                 return (
+                    <ResponsiveContainer>
+                        <LineChart data={combinedData} margin={{ top: 5, right: 10, left: -20, bottom: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="x" fontSize={10} tickLine={false} axisLine={false} label={{ value: message.chartLabels?.x, position: 'insideBottom', offset: -10, fontSize: 10 }} />
+                        <YAxis fontSize={10} tickLine={false} axisLine={false} domain={['dataMin', 'dataMax']} label={{ value: message.chartLabels?.y, angle: -90, position: 'insideLeft', fontSize: 10 }} />
+                        <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', fontSize: '12px' }} />
+                        <Legend wrapperStyle={{fontSize: "10px"}} />
+                        {message.chartData?.map((series, i) => (
+                          <Line key={series.name} dataKey={series.name} type="monotone" stroke={chartColors[i % chartColors.length]} strokeWidth={2} dot={false} name={series.name} />
+                        ))}
+                        </LineChart>
+                    </ResponsiveContainer>
+                )
+        }
+    }
+    return <ChartContainer config={chartConfig} className="h-[150px] w-full"><DynamicChart chartType={message.chartType} /></ChartContainer>;
+  }
 
   return (
     <Card className="flex flex-col h-full max-h-[calc(100vh-2rem)] w-full shadow-lg">
@@ -139,22 +205,7 @@ export function ChatInterface() {
                              <CardDescription>{message.content}</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {message.chartData && message.chartData.length > 0 && (
-                              <ChartContainer config={chartConfig} className="h-[150px] w-full">
-                                <ResponsiveContainer>
-                                  <LineChart data={message.chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                                    <XAxis dataKey="x" fontSize={10} tickLine={false} axisLine={false} label={{ value: message.chartLabels?.x, position: 'insideBottom', offset: -5, fontSize: 10 }} />
-                                    <YAxis fontSize={10} tickLine={false} axisLine={false} domain={['dataMin', 'dataMax']} label={{ value: message.chartLabels?.y, angle: -90, position: 'insideLeft', fontSize: 10 }} />
-                                    <Tooltip
-                                      cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1, strokeDasharray: '3 3' }}
-                                      contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', fontSize: '12px' }}
-                                    />
-                                    <Line dataKey="y" type="monotone" stroke="var(--color-value)" strokeWidth={2} dot={false} name={message.chartLabels?.y || 'Value'} />
-                                  </LineChart>
-                                </ResponsiveContainer>
-                              </ChartContainer>
-                            )}
+                            {renderChart(message)}
                             <p className="text-xs text-muted-foreground mt-1">{message.timestamp}</p>
                         </CardContent>
                      </Card>
@@ -200,8 +251,7 @@ export function ChatInterface() {
           </div>
         </ScrollArea>
       </CardContent>
-      <Separator />
-      <CardFooter className="p-3">
+      <CardFooter className="p-3 border-t">
         <form onSubmit={handleSubmit} className="flex w-full items-center space-x-2">
           <Input
             value={input}
