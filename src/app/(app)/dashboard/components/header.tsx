@@ -1,6 +1,6 @@
 "use client";
 
-import { ArgoExplorerLogo } from "@/components/icons";
+import { FloatChatLogo } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -16,8 +16,8 @@ export function Header() {
     return (
         <header className="flex h-16 items-center justify-between border-b bg-background px-4">
             <div className="flex items-center gap-2">
-                <ArgoExplorerLogo className="h-6 w-6 text-primary" />
-                <h1 className="text-lg font-semibold">OceanInsight</h1>
+                <FloatChatLogo className="h-6 w-6 text-primary" />
+                <h1 className="text-lg font-semibold">FloatChat</h1>
             </div>
             <div className="flex items-center gap-4">
                 <DropdownMenu>

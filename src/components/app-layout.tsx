@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Bot, Home, Info, LayoutDashboard, PanelLeft, Waves, Settings } from 'lucide-react';
 import { Button } from './ui/button';
-import { ArgoExplorerLogo } from './icons';
+import { FloatChatLogo } from './icons';
 import React from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -26,8 +26,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           href="#"
           className="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
         >
-          <ArgoExplorerLogo className="h-4 w-4 transition-all group-hover:scale-110" />
-          <span className="sr-only">Argo Explorer</span>
+          <FloatChatLogo className="h-4 w-4 transition-all group-hover:scale-110" />
+          <span className="sr-only">FloatChat</span>
         </Link>
         {navItems.map((item) => (
             <TooltipProvider key={item.href}>
@@ -76,4 +76,3 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-
