@@ -1,18 +1,35 @@
 'use server';
 
-import { naturalLanguageSqlQuery } from '@/ai/flows/natural-language-sql-query';
+import { queryAndVisualizeData } from '@/ai/flows/query-and-visualize-data';
+import argoData from '@/lib/argo-data.json';
 
-export async function getSQLFromQuestion(
+type ChartSeries = {
+  name: string;
+  data: { x: any; y: any }[];
+};
+
+export async function getAnswerAndChart(
   question: string
-): Promise<{ query?: string; error?: string }> {
+): Promise<{ 
+    answer?: string; 
+    chartData?: ChartSeries[]; 
+    chartType?: 'line' | 'bar' | 'scatter';
+    chartLabels?: {x: string; y: string}; 
+    error?: string 
+}> {
   try {
     if (!question.trim()) {
       return { error: 'Question cannot be empty.' };
     }
-    const result = await naturalLanguageSqlQuery({ question });
-    return { query: result.sqlQuery };
+    const result = await queryAndVisualizeData({ question, jsonData: JSON.stringify(argoData) });
+    return { 
+      answer: result.answer, 
+      chartData: result.chartData, 
+      chartType: result.chartType,
+      chartLabels: result.chartLabels 
+    };
   } catch (error) {
-    console.error('Error in getSQLFromQuestion:', error);
+    console.error('Error in getAnswerAndChart:', error);
     return {
       error: 'Sorry, I was unable to process your question at this time. Please try again later.',
     };

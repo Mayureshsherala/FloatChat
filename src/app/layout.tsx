@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'ARGO Explorer',
+  title: 'FloatChat',
   description: 'AI-powered conversational system to explore and visualize ARGO float oceanographic data.',
 };
 

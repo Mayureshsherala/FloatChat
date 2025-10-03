@@ -1,4 +1,4 @@
-# ARGO Explorer
+# FloatChat
 
 This is a Next.js web application that provides an AI-powered conversational system to explore and visualize ARGO float oceanographic data.
 
@@ -55,7 +55,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 ## Usage
 
-- **Home**: Get an overview of the ARGO Explorer project.
+- **Home**: Get an overview of the FloatChat project.
 - **Chatbot**: Ask questions about the ARGO data in plain English (e.g., "Show me salinity profiles near the equator"). The AI will generate the corresponding SQL query.
 - **Dashboard**: Explore the ARGO data visually through maps, charts, and tables.
 - **About**: Learn more about the ARGO program and how to use the application.
