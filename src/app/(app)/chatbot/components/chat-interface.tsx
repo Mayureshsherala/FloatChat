@@ -1,24 +1,27 @@
 
 'use client';
 
-import { getSQLFromQuestion } from '@/app/(app)/chatbot/actions';
+import { getAnswerAndChart } from '@/app/(app)/chatbot/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, ChevronRight, Loader2, User, Thermometer, Waves, Wind, HelpCircle, Send } from 'lucide-react';
+import { Bot, ChevronRight, Loader2, User, Thermometer, Waves, Wind, Send } from 'lucide-react';
 import React, { FormEvent, useRef, useState, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { DataCharts } from '../../dashboard/components/data-charts';
 import { Separator } from '@/components/ui/separator';
+import { ChartContainer } from '@/components/ui/chart';
+import { Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 type Message = {
   role: 'user' | 'bot' | 'data' | 'info';
   content: string;
   timestamp?: string;
-  query?: string;
+  chartData?: any[];
+  chartLabels?: { x: string; y: string };
 };
 
 const exampleSuggestions = [
@@ -48,7 +51,7 @@ export function ChatInterface() {
     setInput('');
 
     startTransition(async () => {
-      const result = await getSQLFromQuestion(currentInput);
+      const result = await getAnswerAndChart(currentInput);
       if (result.error) {
         toast({
           variant: 'destructive',
@@ -57,13 +60,14 @@ export function ChatInterface() {
         });
         setMessages((prev) => prev.slice(0, -1)); // Remove the user message if the call fails
       } else {
-        const dataMessage: Message = {
+        const botMessage: Message = {
           role: 'data',
-          content: `Analysis for "${currentInput}"`,
-          query: result.query,
+          content: result.answer || "I couldn't find an answer.",
+          chartData: result.chartData,
+          chartLabels: result.chartLabels,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
-        setMessages((prev) => [...prev, dataMessage]);
+        setMessages((prev) => [...prev, botMessage]);
         setTimeout(() => {
           scrollAreaRef.current?.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
         }, 100);
@@ -74,6 +78,13 @@ export function ChatInterface() {
   const handleExampleQuery = (query: string) => {
     setInput(query);
   }
+  
+  const chartConfig = {
+    value: {
+      label: "Value",
+      color: "hsl(var(--chart-1))",
+    },
+  };
 
   return (
     <Card className="flex flex-col h-full max-h-[calc(100vh-2rem)] w-full shadow-lg">
@@ -107,12 +118,12 @@ export function ChatInterface() {
                     message.role === 'user'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted',
-                    (message.role === 'data' || message.role === 'info') ? 'w-full p-0 bg-transparent' : ''
+                    (message.role === 'data' || message.role === 'info') ? 'w-full max-w-full p-0 bg-transparent' : ''
                   )}
                 >
                   {message.role === 'bot' && 
                     <div>
-                      <p className="font-mono bg-background/50 p-2 rounded-md">{message.content}</p>
+                      <p className="bg-background/50 p-2 rounded-md">{message.content}</p>
                       <p className="text-xs text-muted-foreground mt-1">{message.timestamp}</p>
                     </div>
                   }
@@ -125,12 +136,25 @@ export function ChatInterface() {
                   {message.role === 'data' && (
                      <Card>
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-base">{message.content}</CardTitle>
-                             <CardDescription className="font-mono text-xs bg-background/50 p-2 rounded-md mt-1">{message.query}</CardDescription>
+                             <CardDescription>{message.content}</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <DataCharts isMiniature={true} />
-                            <p className="text-xs text-muted-foreground mt-2">Peak temps in May (28.7°C) with monsoon cooling from June.</p>
+                            {message.chartData && message.chartData.length > 0 && (
+                              <ChartContainer config={chartConfig} className="h-[150px] w-full">
+                                <ResponsiveContainer>
+                                  <LineChart data={message.chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                    <XAxis dataKey="x" fontSize={10} tickLine={false} axisLine={false} label={{ value: message.chartLabels?.x, position: 'insideBottom', offset: -5, fontSize: 10 }} />
+                                    <YAxis fontSize={10} tickLine={false} axisLine={false} domain={['dataMin', 'dataMax']} label={{ value: message.chartLabels?.y, angle: -90, position: 'insideLeft', fontSize: 10 }} />
+                                    <Tooltip
+                                      cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1, strokeDasharray: '3 3' }}
+                                      contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)', fontSize: '12px' }}
+                                    />
+                                    <Line dataKey="y" type="monotone" stroke="var(--color-value)" strokeWidth={2} dot={false} name={message.chartLabels?.y || 'Value'} />
+                                  </LineChart>
+                                </ResponsiveContainer>
+                              </ChartContainer>
+                            )}
                             <p className="text-xs text-muted-foreground mt-1">{message.timestamp}</p>
                         </CardContent>
                      </Card>
@@ -144,10 +168,10 @@ export function ChatInterface() {
                             <p className="text-sm text-muted-foreground">{message.content}</p>
                             <div className="space-y-2 mt-4">
                                 {exampleSuggestions.map((item, index) => (
-                                    <div key={index} className="flex items-center gap-2 p-2 rounded-md bg-background text-sm">
+                                    <button key={index} onClick={() => handleExampleQuery(item.text)} className="w-full flex items-center gap-2 p-2 rounded-md bg-background text-sm text-left hover:bg-accent transition-colors">
                                         {item.icon}
                                         <span>{item.text}</span>
-                                    </div>
+                                    </button>
                                 ))}
                             </div>
                              <p className="text-xs text-muted-foreground pt-2">Try: "Show me sea surface temperature in Bay of Bengal"</p>
@@ -169,7 +193,7 @@ export function ChatInterface() {
                   </Avatar>
                 <div className="bg-muted rounded-lg p-3 flex items-center space-x-2">
                   <Loader2 className="size-5 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">Generating...</span>
+                  <span className="text-sm text-muted-foreground">Thinking...</span>
                 </div>
               </div>
             )}
